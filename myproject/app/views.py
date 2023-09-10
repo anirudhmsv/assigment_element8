@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect ,get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from .models import *
@@ -105,3 +105,95 @@ def import_teachers(request):
         error_message = None
 
     return render(request, 'import_page.html', {'error_message': error_message})
+
+
+
+
+
+
+
+
+def edit_teacher_view(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    subjects = Subject.objects.all()
+    teacher_subjects = teacher.teacher_subjects.all()
+    print("Teacher Subjects:", teacher_subjects)
+
+    if request.method == 'POST':
+        teacher.first_name = request.POST.get('first_name')
+        teacher.last_name = request.POST.get('last_name')
+        teacher.email = request.POST.get('email')
+        teacher.phone_number = request.POST.get('phone_number')
+        teacher.room_number = request.POST.get('room_number')
+        if request.FILES.get('profile_picture'):
+            teacher.profile_picture = request.FILES['profile_picture']
+
+        selected_subject_ids = request.POST.getlist('subjects_taught')
+
+        existing_subject_ids = teacher.teacher_subjects.values_list('subject_id', flat=True)
+
+        subjects_to_remove = set(existing_subject_ids) - set(selected_subject_ids)
+        teacher.teacher_subjects.filter(subject_id__in=subjects_to_remove).delete()
+
+        subjects_to_add = set(selected_subject_ids) - set(existing_subject_ids)
+        for subject_id in subjects_to_add:
+            subject = get_object_or_404(Subject, id=subject_id)
+            teacher.teacher_subjects.create(subject=subject)
+        teacher.save()
+        return redirect('/adminviewteacher')
+    return render(request, 'edit_teacher.html', {'teacher': teacher, 'subjects': subjects})
+
+
+from django.http import HttpResponse, HttpResponseRedirect
+
+def delete_teacher_view(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    teacher.delete()
+    return redirect('/adminviewteacher')
+
+
+from django.urls import reverse
+
+def add_teacher_view(request):
+    subjects = Subject.objects.all()
+    if request.method == 'POST':
+        # Get the selected subjects
+        subjects_taught = request.POST.getlist('subjects_taught')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        phone_number = request.POST.get('phone_number')
+        room_number = request.POST.get('room_number')
+        subjects_taught = request.POST.getlist('subjects_taught')
+        profile_picture = request.FILES.get('profile_picture')
+        print("profile_picture::::::",profile_picture)
+
+        if profile_picture:
+            # Define the upload path and save the file
+            upload_path = os.path.join('profile_pictures', profile_picture.name)
+
+        if Teacher.objects.filter(email=email).exists():
+            error_message = "A teacher with this email address already exists."
+            return render(request, 'add_teacher.html', {'error_message': error_message,'subjects': subjects})
+        
+        # Check if the number of selected subjects exceeds 5
+        if len(subjects_taught) > 5:
+            error_message = "A teacher can teach no more than 5 subjects."
+            return render(request, 'add_teacher.html', {'error_message': error_message,'subjects': subjects})
+
+        teacher = Teacher.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone_number=phone_number,
+            room_number=room_number,
+            profile_picture=upload_path,
+        )
+
+        for subject_id in subjects_taught:
+            subject = Subject.objects.get(pk=subject_id)
+            TeacherSubject.objects.create(teacher=teacher, subject=subject)
+
+        return redirect('/adminviewteacher')
+    return render(request, 'add_teacher.html', {'subjects': subjects})
+

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Teacher</title>
+</head>
+<body>
+    <h1>Edit Teacher</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" value="{{ teacher.first_name }}"><br><br>
+
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" value="{{ teacher.last_name }}"><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ teacher.email }}"><br><br>
+
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" id="phone_number" name="phone_number" value="{{ teacher.phone_number }}"><br><br>
+
+        <label for="room_number">Room Number:</label>
+        <input type="text" id="room_number" name="room_number" value="{{ teacher.room_number }}"><br><br>
+
+        <label for="subjects_taught">Subjects Taught:</label>
+        <select multiple id="subjects_taught" name="subjects_taught">
+            {% for subject in subjects %}
+                <option value="{{ subject.id }}"
+                    {% for teacher_subject in teacher.teacher_subjects.all %}
+                        {% if subject.id == teacher_subject.subject.id %}
+                            selected
+                        {% endif %}
+                    {% endfor %}
+                >{{ subject.name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+
+        <input type="submit" value="Save Changes">
+    </form>
+</body>
+</html>
