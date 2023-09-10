@@ -1,2 +1,4 @@
-usermname : admin
+login credentials : 
+
+username : admin
 password :admin
