@@ -1,0 +1,91 @@
+{% extends 'adminnav.html' %}
+
+
+
+{% block content %}
+
+<head>
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/dataTables.bootstrap4.min.css">
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap4.min.js"></script>
+  <style media="screen">
+    a:link {
+      text-decoration: none;
+    }
+    h6{
+      text-align:center;
+    }
+    .row{
+      margin:10px;
+    }
+  </style>
+
+</head>
+
+
+
+
+<div class="container">
+
+    	<div class="row" >
+
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h6 class="panel-title">Teachers</h6>
+<!--<center><h1>TEACHERS</h1></center>-->
+					</div>
+          <br>
+          
+          <a href="{% url 'import_teachers' %}"> <button class="btn-primary"> Import Teachers</button></a>
+
+
+<!--					<table class="table table-hover table-striped table-bordered" id="dev-table">-->
+                    <table id="example" class="table table-striped table-bordered" style=" background-color:white;">
+            <thead>
+
+                <tr>
+                    <th>Profile picture</th>
+                    <th>Name</th>
+                    <th>Phone no</th>
+                     <th>Email Address</th>
+                    <th>NumberRoom</th>
+                    <th>Subjects</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            {% for i in data %}
+              <tr>
+                  <td><img src="{{i.profile_picture}}" alt="image" style="width:80px ;height:50px;"></td>
+                  <td>{{i.first_name}} {{i.last_name}} </td>
+                  <td>{{i.phone_number}}</td>
+                  <td> {{i.email}}</td>
+                  <td>{{i.room_number}}</td>
+                  <td> 
+                    
+                    {% for subject in i.teacher_subjects.all %}
+                    {{ subject.subject.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                  </td>
+                  <td><a class="btn btn-primary btn-xs" href="/editadminteacher/{{i.id}}"  ><span class="glyphicon glyphicon-edit"></span></a>
+                      <button class="btn btn-danger btn-xs"  onclick="return confirm('Are You Sure to Delete ?')"><a href="/deleteadminteacher/{{i.id}}"  ><span class="glyphicon glyphicon-trash" style="color:white;"></span></a></button></td>
+              </tr>
+
+            {% endfor %}
+					</table>
+				</div>
+
+
+				</div>
+			</div>
+
+
+<script>
+    $(document).ready(function() {
+    $('#example').DataTable();
+    } );
+</script>
+
+{% endblock content %}
